@@ -591,6 +591,17 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
 .pw-box.shake{animation:shake .4s}
 @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 
+
+/* ---------- CV download menu ---------- */
+.hero-ctas{position:relative;z-index:6}
+.cv-wrap{position:relative;display:inline-flex}
+.cv-menu{position:absolute;left:0;top:calc(100% + 8px);z-index:20;min-width:210px;padding:6px;border-radius:16px;background:var(--surface);border:1px solid var(--line-2);box-shadow:0 24px 50px -20px var(--shadow);display:flex;flex-direction:column;animation:heroRise .3s var(--ease-out)}
+.cv-menu[hidden]{display:none}
+.cv-menu button{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:11px 12px;border-radius:10px;border:0;background:none;text-align:left;font-size:15px}
+.cv-menu button:hover,.cv-menu button:focus-visible{background:var(--bg-2)}
+.cv-menu small{color:var(--muted);font-size:12px}
+@media (max-width:860px){.cv-wrap{flex:1 1 auto}.cv-wrap .btn{width:100%;justify-content:center}.cv-menu{left:auto;right:0;min-width:200px;max-width:calc(100vw - 40px)}}
+
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
@@ -660,7 +671,7 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
             <p class="hero-intro rise" style="--i:3" id="intro-text"></p>
             <div class="hero-ctas rise" style="--i:4">
               <a class="btn primary mag" href="#work">See my work <span class="arr">→</span></a>
-              <button class="btn mag" type="button" id="cv-btn" hidden>Download CV</button>
+              <div class="cv-wrap" id="cv-wrap" hidden><button class="btn mag" type="button" id="cv-btn" aria-haspopup="true" aria-expanded="false" aria-controls="cv-menu">Download CV <span class="arr">↓</span></button><div class="cv-menu" id="cv-menu" role="menu" hidden><button type="button" role="menuitem" data-cv="en"><b>English</b><small>PDF · 1 page</small></button><button type="button" role="menuitem" data-cv="fr"><b>Français</b><small>PDF · 1 page</small></button></div></div>
               <a class="btn mag" href="#contact">Start a project</a>
             </div>
           </div>
@@ -675,7 +686,7 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
         </div>
         <div class="facts rise" style="--i:5">
           <div class="fact"><strong>Since 2022</strong><span>Freelance design for schools, events and small businesses</span></div>
-          <div class="fact"><strong>IT · UniAbidjan</strong><span>Information Technology, class of 2027</span></div>
+          <div class="fact"><strong>IT · UniAbidjan</strong><span>Information Technology, class of 2028</span></div>
           <div class="fact"><strong>English · Français</strong><span>Briefs, calls and delivery in both languages</span></div>
         </div>
       </div>
@@ -783,7 +794,7 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
     </div>
     <div class="wrap foot-links">
       <div class="group" id="foot-links"></div>
-      <div class="group"><button class="fl" type="button" id="to-top">Back to top ↑</button></div>
+      <div class="group"><button class="fl" type="button" data-cv="en">CV (English) ↓</button><button class="fl" type="button" data-cv="fr">CV (Français) ↓</button><button class="fl" type="button" id="to-top">Back to top ↑</button></div>
     </div>
     <div class="giant" aria-hidden="true"><span style="--i:0">F</span><span style="--i:1">A</span><span style="--i:2">W</span><span style="--i:3">A</span><span style="--i:4">Z</span><span class="dot" style="--i:5">.</span></div>
     <div class="wrap foot-meta mono">
@@ -806,7 +817,8 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
   "availability": "Open to freelance projects",
   "portrait": "images/fawaz-adebayo.jpg",
   "photoPos": "top",
-  "cv": null
+  "cv": "cv/Dauda-Fawaz-Adebayo-CV-EN.pdf",
+  "cvFr": "cv/Dauda-Fawaz-Adebayo-CV-FR.pdf"
  },
  "contact": {
   "email": "fawazdaud99@gmail.com",
@@ -1650,7 +1662,8 @@ function renderSite(){
   $("#about-body").innerHTML=(pr.about||"").split(/\n\s*\n/).filter(Boolean).map(function(p){return "<p>"+rich(p)+"</p>"}).join("");
   $("#loc").textContent=c.location||"Abidjan, Côte d'Ivoire";
   $("#portrait-frame").innerHTML=pr.portrait?'<img alt="Portrait of Dauda Fawaz Adebayo" src="'+blob(pr.portrait)+'" style="object-position:'+(POS[pr.photoPos]||POS.top)+'"><span class="glare"></span>':'<div class="mono-art"><b>FA</b></div>';
-  $("#cv-btn").hidden=!pr.cv;
+  $("#cv-wrap").hidden=!(pr.cv||pr.cvFr);
+  $$("[data-cv=\"fr\"]").forEach(function(b){b.hidden=!pr.cvFr});$$("[data-cv=\"en\"]").forEach(function(b){b.hidden=!pr.cv});
   renderWork(); renderContact(); fitFooter();
 }
 function visibleProjects(){return state.projects.filter(function(p){return p.visible})}
@@ -1717,11 +1730,18 @@ $("#msg-actions").addEventListener("click",function(e){
   else{a.href="mailto:"+state.contact.email+"?subject="+encodeURIComponent(type+" project"+(name?" from "+name:""))+"&body="+encodeURIComponent(body);$("#msg-note").textContent="If your email app didn't open, copy the address above and paste your message."}
   document.body.appendChild(a);a.click();a.remove();
 });
-$("#cv-btn").addEventListener("click",async function(){
-  var id=state.profile.cv; if(!id)return;
-  if(caps.downloads){try{var r=await fetch(blob(id));var bl=await r.blob();await caps.downloads.save({filename:"Dauda-Fawaz-Adebayo-CV.pdf",data:bl});return}catch(e){if(e&&e.code==="declined")return}}
-  var a=document.createElement("a");a.href=blob(id);a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove();
-});
+var cvMenu=$("#cv-menu"), cvBtn=$("#cv-btn");
+function setCvMenu(open){cvMenu.hidden=!open;cvBtn.setAttribute("aria-expanded",String(open))}
+cvBtn.addEventListener("click",function(e){e.stopPropagation();setCvMenu(cvMenu.hidden)});
+document.addEventListener("click",function(e){if(!e.target.closest("#cv-wrap"))setCvMenu(false)});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")setCvMenu(false)});
+async function downloadCv(lang){
+  var id=lang==="fr"?state.profile.cvFr:state.profile.cv; if(!id)return;
+  var name="Dauda-Fawaz-Adebayo-CV-"+(lang==="fr"?"FR":"EN")+".pdf";
+  if(caps.downloads){try{var r=await fetch(blob(id));var bl=await r.blob();await caps.downloads.save({filename:name,data:bl});return}catch(e){if(e&&e.code==="declined")return}}
+  var a=document.createElement("a");a.href=blob(id);a.setAttribute("download",name);a.rel="noopener";document.body.appendChild(a);a.click();a.remove();
+}
+document.addEventListener("click",function(e){var b=e.target.closest("[data-cv]");if(!b)return;setCvMenu(false);downloadCv(b.getAttribute("data-cv"))});
 
 /* ---------------- Project lightbox ---------------- */
 var lastFocus=null;
@@ -1893,6 +1913,8 @@ function profileForm(){
   '<hr class="sep"><div style="font-weight:600">CV</div>'+
   (pr.cv?'<p class="hint">A CV is attached. Visitors see a “Download CV” button.</p><button class="btn sm" type="button" data-a="rmcv" style="align-self:flex-start">Remove CV</button>':'<p class="hint">No CV yet. The button stays hidden until you add one.</p>')+
   (caps.assets?'<label class="drop" for="pr-cv"><strong>'+(pr.cv?"Replace":"Upload")+' CV</strong> · PDF, up to 20 MB<input type="file" id="pr-cv" accept="application/pdf" hidden></label>':'')+
+  '<div style="font-weight:600;margin-top:6px">French CV</div>'+(pr.cvFr?'<button class="btn sm" type="button" data-a="rmcvfr" style="align-self:flex-start">Remove French CV</button>':'<p class="hint">No French CV yet.</p>')+
+  (caps.assets?'<label class="drop" for="pr-cvfr"><strong>'+(pr.cvFr?"Replace":"Upload")+' French CV</strong> · PDF<input type="file" id="pr-cvfr" accept="application/pdf" hidden></label>':'')+
   '<span id="up-status" class="hint"></span>';
 }
 function contactForm(){
@@ -1907,7 +1929,7 @@ function contactForm(){
   fld("Instagram","ct-ig",c.instagram,'data-c="instagram" placeholder="https://www.instagram.com/…"')+
   fld("GitHub","ct-gh",c.github,'data-c="github" placeholder="https://github.com/…"');
 }
-function referenced(){var s={};[published,state].forEach(function(st){st.projects.forEach(function(p){p.images.forEach(function(i){s[i]=1})});if(st.profile.portrait)s[st.profile.portrait]=1;if(st.profile.cv)s[st.profile.cv]=1});return s}
+function referenced(){var s={};[published,state].forEach(function(st){st.projects.forEach(function(p){p.images.forEach(function(i){s[i]=1})});if(st.profile.portrait)s[st.profile.portrait]=1;if(st.profile.cv)s[st.profile.cv]=1;if(st.profile.cvFr)s[st.profile.cvFr]=1});return s}
 function filesPanel(){
   if(!caps.assets) return '<div class="notice err">File storage isn\'t available in this view.</div>';
   return '<p class="hint">Images you remove stay in storage until you clean them up here.</p><div id="files-info" class="notice">Checking storage…</div>';
@@ -1948,6 +1970,7 @@ adminHost.addEventListener("click",async function(e){
     case "delproj": if(armed!=="delproj"){armed="delproj";renderAdmin();return} state.projects=ps.filter(function(x){return x.id!==editing});editing=null;armed=null;changed(true);toast("Project removed. Publish to update the site.");return;
     case "rmportrait": state.profile.portrait=null; changed(true); return;
     case "rmcv": state.profile.cv=null; changed(true); return;
+    case "rmcvfr": state.profile.cvFr=null; changed(true); return;
     case "restore": state=clone(caps.pendingDraft.state); caps.pendingDraft=null; changed(true); toast("Unpublished edits restored."); return;
     case "dropdraft": caps.pendingDraft=null; store(DRAFT_KEY,null); renderAdmin(); return;
     case "discard": if(armed!=="discard"){armed="discard";renderFoot();return} armed=null; state=clone(published); editing=null; changed(true); return;
@@ -1979,6 +2002,7 @@ adminHost.addEventListener("change",function(e){
   if(el.id==="pf-files") uploadProjectImages(el.files);
   if(el.id==="pr-photo") uploadSingle(el.files[0],"portrait");
   if(el.id==="pr-cv") uploadSingle(el.files[0],"cv");
+  if(el.id==="pr-cvfr") uploadSingle(el.files[0],"cvFr");
 });
 ["dragover","dragleave","drop"].forEach(function(ev){
   adminHost.addEventListener(ev,function(e){
@@ -2008,12 +2032,12 @@ async function uploadProjectImages(files){
 }
 async function uploadSingle(f,kind){
   if(!f||!caps.assets)return; var st=$("#up-status"), ty=typeOf(f);
-  if(kind==="cv"&&ty!=="application/pdf"){toast("Please choose a PDF file for your CV.");return}
+  if((kind==="cv"||kind==="cvFr")&&ty!=="application/pdf"){toast("Please choose a PDF file for your CV.");return}
   if(kind==="portrait"&&!/^image\/(png|jpeg|webp)$/.test(ty)){toast("Please choose a JPG, PNG or WebP photo. iPhone HEIC photos need converting first.");return}
   if(f.size>20*1048576){toast(f.name+" is larger than 20 MB.");return}
   if(st)st.textContent="Uploading…";
   var pe=document.querySelector("[data-photo]"); if(kind==="portrait"&&pe)pe.textContent="Uploading…";
-  try{var r=await caps.assets.upload(f,{type:ty});state.profile[kind]=r.id;changed(true);toast((kind==="cv"?"CV":"Photo")+" uploaded. Press “Publish now” to make it live.")}
+  try{var r=await caps.assets.upload(f,{type:ty});state.profile[kind]=r.id;changed(true);toast((kind==="cv"?"CV":kind==="cvFr"?"French CV":"Photo")+" uploaded. Press “Publish now” to make it live.")}
   catch(e){if(st)st.textContent="";renderSite();toast(f.name+" "+upErr(e))}
 }
 
